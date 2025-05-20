@@ -1,30 +1,95 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import { ref } from 'vue'
+import type { FileInfo } from './types/electron'
+
+const fileList = ref<FileInfo[]>([])
+const loading = ref(false)
+
+const loadDriveFiles = async () => {
+  loading.value = true
+  try {
+    fileList.value = await window.electronAPI.getDriveFiles()
+  } catch (error) {
+    console.error('Error loading files:', error)
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="container">
+    <button @click="loadDriveFiles" :disabled="loading">
+      {{ loading ? '加载中...' : '显示主目录文件列表' }}
+    </button>
+    
+    <div class="file-list" v-if="fileList.length > 0">
+      <h3>主目录文件列表：</h3>
+      <ul>
+        <li v-for="file in fileList" :key="file.path" class="file-item">
+          <span class="file-icon">{{ file.isDirectory ? '📁' : '📄' }}</span>
+          <span class="file-name">{{ file.name }}</span>
+          <span class="file-type">{{ file.isDirectory ? '文件夹' : '文件' }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.file-list {
+  margin-top: 20px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.file-item {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+.file-icon {
+  font-size: 1.2em;
+}
+
+.file-name {
+  flex: 1;
+  font-family: monospace;
+}
+
+.file-type {
+  color: #666;
+  font-size: 0.9em;
 }
 </style>
