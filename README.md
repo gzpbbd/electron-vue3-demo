@@ -28,6 +28,7 @@
 ## 快速开始
 
 ### 安装依赖
+涉及到安装 electron，所以不要使用 npm 镜像源，容易出问题
 
 ```bash
 npm install
