@@ -6,6 +6,14 @@ const os = require('os');
 let mainWindow; // 主窗口 - 用于显示我们的Vue页面
 let browserWindow; // 浏览器窗口 - 用于显示小红书
 
+// 动态导入提取脚本
+let extractScript;
+import('./extractScript.js').then(module => {
+  extractScript = module;
+}).catch(error => {
+  console.error('加载提取脚本失败：', error);
+});
+
 function createWindows() {
   // 创建主窗口 - 显示我们的Vue页面
   mainWindow = new BrowserWindow({
@@ -72,6 +80,39 @@ function createWindows() {
       canGoForward: browserWindow.webContents.canGoForward(),
       currentUrl: browserWindow.webContents.getURL()
     };
+  });
+
+  // 添加数据提取功能
+  ipcMain.handle('extract-page-data', async () => {
+    try {
+      if (!extractScript) {
+        throw new Error('提取脚本尚未加载');
+      }
+
+      // 一次性注入所有需要的函数
+      const setupScript = `
+        if (!window.__xiaohongshuExtractor) {
+          window.__xiaohongshuExtractor = {
+            extractData: ${extractScript.extractXiaohongshuData.toString()},
+            extractComment: ${extractScript.extractCommentData.toString()}
+          };
+          console.log('数据提取脚本已加载');
+        }
+      `;
+
+      // 先确保脚本已注入
+      await browserWindow.webContents.executeJavaScript(setupScript);
+
+      // 执行数据提取
+      const result = await browserWindow.webContents.executeJavaScript(`
+        window.__xiaohongshuExtractor.extractData();
+      `);
+
+      return result;
+    } catch (error) {
+      console.error('提取数据时出错：', error);
+      return null;
+    }
   });
 
   // 监听窗口关闭事件

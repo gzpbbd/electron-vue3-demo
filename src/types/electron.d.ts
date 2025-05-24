@@ -17,6 +17,7 @@ export interface ElectronAPI {
   browserRefresh: () => Promise<void>;
   browserLoadUrl: (url: string) => Promise<void>;
   getNavState: () => Promise<NavState>;
+  extractPageData: () => Promise<any>;
 }
 
 declare global {

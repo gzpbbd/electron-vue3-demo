@@ -7,7 +7,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   browserGoForward: () => ipcRenderer.invoke('browser-go-forward'),
   browserRefresh: () => ipcRenderer.invoke('browser-refresh'),
   browserLoadUrl: (url) => ipcRenderer.invoke('browser-load-url', url),
-  getNavState: () => ipcRenderer.invoke('get-nav-state')
+  getNavState: () => ipcRenderer.invoke('get-nav-state'),
+  // 数据提取
+  extractPageData: () => ipcRenderer.invoke('extract-page-data')
 })
 
 // 移除不必要的 DOMContentLoaded 事件监听器
